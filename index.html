@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defenda Developer Profile</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(-45deg, #1a1a1a, #333, #1a1a1a, #111);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: #eee;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    body.dark {
+      background-color: #121212;
+      color: #eee;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 1rem 2rem;
+      background: linear-gradient(to right, #333, #444);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #00bfff; }
+      to { text-shadow: 0 0 20px #00bfff, 0 0 30px #00bfff; }
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-links a, .nav-links button {
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover, .nav-links button:hover {
+      color: #00bfff;
+    }
+
+    .clock {
+      font-size: 1rem;
+      color: #00bfff;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: linear-gradient(145deg, #00bfff, #005f9e);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .hero h2 span::after {
+      content: '|';
+      animation: typing 2s steps(20) infinite;
+    }
+
+    @keyframes typing {
+      0%, 100% { content: '|'; }
+      50% { content: ''; }
+    }
+
+    .projects, .skills {
+      padding: 2rem 0;
+    }
+
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .repo-card {
+      padding: 1rem;
+      border-radius: 12px;
+      background: #fff;
+      color: #000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .repo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .skill-bar {
+      margin: 1.5rem 0;
+    }
+
+    .progress {
+      background: #00bfff;
+      height: 12px;
+      border-radius: 6px;
+      transition: width 0.5s;
+      width: 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #222;
+      color: #fff;
+    }
+
+    .socials a {
+      margin: 0 0.5rem;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    #unsupported-device.unsupported-visible {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.95);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #unsupported-device.unsupported-hidden {
+      display: none;
+    }
+
+    .unsupported-message {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      color: #000;
+      text-align: center;
+      max-width: 300px;
+      box-shadow: 0 0 20px rgba(255,0,0,0.4);
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="unsupported-device" class="unsupported-hidden">
+    <div class="unsupported-message">
+      <h2>Your device isn't supported on this website.</h2>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <h1>Defenda Developer</h1>
+    <div class="clock" id="clock"></div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><button id="theme-toggle">Switch Theme</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h2><span>Hi, I'm MaxYT5184 👋</span></h2>
+      <p>A passionate front-end developer with pro HTML, CSS, JS skills. Let's build something epic together.</p>
+    </section>
+
+    <section id="projects" class="projects">
+      <h2>Projects</h2>
+      <div class="repo-grid" id="repo-grid"></div>
+    </section>
+
+    <section id="skills" class="skills">
+      <h2>Skills & Achievements</h2>
+      <div class="skill-bar"><span>JavaScript</span><div style="width: 90%" class="progress"></div></div>
+      <div class="skill-bar"><span>HTML</span><div style="width: 95%" class="progress"></div></div>
+      <div class="skill-bar"><span>CSS</span><div style="width: 90%" class="progress"></div></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Defenda Developer Profile</p>
+    <div class="socials">
+      <a href="https://github.com/MaxYT5184" target="_blank">GitHub</a>
+      <a href="mailto:a.tormen2012@gmail.com">Email</a>
+    </div>
+  </footer>
+
+  <script>
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
+
+    // Fire Tablet Detection
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.includes("silk") || userAgent.includes("kf") || userAgent.includes("fire")) {
+      const blockUI = document.getElementById("unsupported-device");
+      blockUI.classList.remove("unsupported-hidden");
+      blockUI.classList.add("unsupported-visible");
+      setTimeout(() => {
+        blockUI.classList.remove("unsupported-visible");
+        blockUI.classList.add("unsupported-hidden");
+      }, 10000);
+    }
+
+    // GitHub Repos Fetcher
+    const username = 'MaxYT5184';
+    fetch(`https://api.github.com/users/${username}/repos`)
+      .then(response => response.json())
+      .then(repos => {
+        const grid = document.getElementById('repo-grid');
+        if (repos.length === 0) {
+          grid.innerHTML = '<p>No public repositories found.</p>';
+          return;
+        }
+        repos.sort((a, b) => b.stargazers_count - a.stargazers_count);
+        repos.forEach(repo => {
+          const card = document.createElement('div');
+          card.className = 'repo-card';
+          card.innerHTML = `
+            <h3>${repo.name}</h3>
+            <p>${repo.description || "No description"}</p>
+            <p><strong>Language:</strong> ${repo.language || "N/A"}</p>
+            <p><strong>⭐ Stars:</strong> ${repo.stargazers_count}</p>
+            <p><strong>🍴 Forks:</strong> ${repo.forks_count}</p>
+            <a href="${repo.html_url}" target="_blank">View Repo</a>
+          `;
+          grid.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById('repo-grid').innerHTML = '<p>Error loading repositories.</p>';
+        console.error("Failed to fetch GitHub repos:", err);
+      });
+
+    // Animate skills
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.progress').forEach(bar => {
+        const width = bar.getAttribute('style').match(/\d+/)[0];
+        setTimeout(() => {
+          bar.style.width = width + '%';
+        }, 300);
+      });
+    });
+  </script>
+</body>
+</html>
