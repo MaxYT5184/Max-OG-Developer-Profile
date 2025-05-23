@@ -75,11 +75,6 @@
     background-color: #003f9a;
   }
 
-  #unlockBtn:focus, #lockBtn:focus {
-    outline: 3px solid #003f9a;
-    outline-offset: 3px;
-  }
-
   #unlockBtn[disabled] {
     cursor: wait;
     opacity: 0.8;
@@ -145,18 +140,13 @@
     transition: background-color 0.3s ease;
   }
 
-  #lockBtn:focus {
-    outline: 3px solid #a43531;
-    outline-offset: 3px;
-  }
-
   #lockBtn:hover {
     background-color: #b2302b;
   }
 
   @media (max-width: 700px) {
     #infoPanel {
-      margin: 1rem 1rem;
+      margin: 1rem;
       padding: 1.5rem 1.8rem;
     }
     .info-label {
@@ -176,34 +166,28 @@
 <body>
 
 <!-- Loading Screen -->
-<div id="loadingScreen" role="alert" aria-live="assertive" aria-busy="true">
+<div id="loadingScreen">
   Loading Device Info Checker...
-  <div class="spinner" aria-hidden="true"></div>
+  <div class="spinner"></div>
 </div>
 
 <!-- Unlock Overlay -->
-<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="unlockBtn" style="display:none;">
-  <button id="unlockBtn" aria-label="Unlock device information">
-    <span>🔓 Unlock</span>
-  </button>
+<div id="overlay" style="display:none;">
+  <button id="unlockBtn"><span>🔓 Unlock</span></button>
 </div>
 
 <!-- Device Info Panel -->
-<div id="infoPanel" aria-live="polite" aria-atomic="true">
+<div id="infoPanel">
   <h1>🔍 Your Device Information</h1>
   <div class="info-row"><span class="info-label">📱 Device Type:</span> <span id="deviceType">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🖥️ Operating System:</span> <span id="osInfo">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🌐 Browser:</span> <span id="browserInfo">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🧮 CPU Cores:</span> <span id="cpuCores">Detecting...</span></div>
   <div class="info-row"><span class="info-label">💾 RAM (Approx.):</span> <span id="ram">Detecting...</span></div>
-  <div class="info-row"><span class="info-label">🗄️ Storage (Used / Total):</span> <span id="storage">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🖼️ Screen Resolution:</span> <span id="screenRes">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🎨 Color Depth:</span> <span id="colorDepth">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🌐 Network Type:</span> <span id="networkType">Detecting...</span></div>
-  <div class="info-row"><span class="info-label">📶 Estimated Wi-Fi Speed:</span> <span id="wifiSpeed">Detecting...</span></div>
-  <div class="info-row"><span class="info-label">⚡ Device Speed Estimate:</span> <span id="deviceSpeed">Calculating...</span></div>
   <div class="info-row"><span class="info-label">🔋 Battery Status:</span> <span id="batteryStatus">Detecting...</span></div>
-  <div class="info-row"><span class="info-label">🌐 IP Address:</span> <span id="ipAddress">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🌍 Language:</span> <span id="language">Detecting...</span></div>
   <div class="info-row"><span class="info-label">⏰ Timezone:</span> <span id="timezone">Detecting...</span></div>
   <div class="info-row"><span class="info-label">🍪 Cookies Enabled:</span> <span id="cookiesEnabled">Detecting...</span></div>
@@ -211,205 +195,53 @@
   <div class="info-row"><span class="info-label">📋 User Agent:</span> <span id="userAgent" style="word-break: break-word;">Detecting...</span></div>
 
   <div id="btnContainer">
-    <button id="lockBtn" aria-label="Lock and hide device information">🔒 Lock</button>
+    <button id="lockBtn">🔒 Lock</button>
   </div>
 </div>
 
 <script>
-  // Helper to get browser name/version
-  function getBrowserInfo() {
-    const ua = navigator.userAgent;
-    let tem, M = ua.match(/(opera|chrome|safari|firefox|edge|trident(?=\/))\/?\s*(\d+)/i) || [];
-    if(/trident/i.test(M[1])) {
-      tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-      return 'IE '+(tem[1] || '');
-    }
-    if(M[1] === 'Chrome') {
-      tem = ua.match(/\b(OPR|Edg)\/(\d+)/);
-      if(tem != null) {
-        return tem.slice(1).join(' ').replace('OPR', 'Opera').replace('Edg', 'Edge');
-      }
-    }
-    M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
-    if((tem = ua.match(/version\/(\d+)/i))!= null) M.splice(1,1,tem[1]);
-    return M.join(' ');
-  }
-
-  // Helper: Detect device type (mobile/tablet/desktop)
-  function detectDeviceType() {
-    const ua = navigator.userAgent;
-    if(/Mobi|Android/i.test(ua)) return "Mobile";
-    if(/Tablet|iPad/i.test(ua)) return "Tablet";
-    return "Desktop";
-  }
-
-  // Estimate device speed by some simple benchmark (simplified)
-  async function estimateDeviceSpeed() {
-    // Run a simple loop for 100ms approx and measure ops
-    return new Promise(resolve => {
-      const start = performance.now();
-      let count = 0;
-      function loop() {
-        for(let i=0; i<10000; i++) count++;
-        if(performance.now() - start < 100) {
-          requestAnimationFrame(loop);
-        } else {
-          resolve(count);
-        }
-      }
-      loop();
-    });
-  }
-
-  // Fetch IP Address from free service
-  async function getIPAddress() {
-    try {
-      const res = await fetch('https://api64.ipify.org?format=json');
-      if(res.ok) {
-        const data = await res.json();
-        return data.ip || 'Unavailable';
-      }
-    } catch(e) {
-      return 'Unavailable';
-    }
-  }
-
-  // Main info gathering and displaying function
-  async function gatherDeviceInfo() {
-    // Device type
-    const deviceType = detectDeviceType();
-    // OS info - limited from navigator.platform and userAgent parsing
-    let osInfo = 'Unknown';
-    const platform = navigator.platform.toLowerCase();
-    if(platform.includes('win')) osInfo = 'Windows';
-    else if(platform.includes('mac')) osInfo = 'macOS';
-    else if(platform.includes('linux')) osInfo = 'Linux';
-    else if(/android/i.test(navigator.userAgent)) osInfo = 'Android';
-    else if(/iphone|ipad|ipod/i.test(navigator.userAgent)) osInfo = 'iOS';
-
-    // Browser info
-    const browserInfo = getBrowserInfo();
-
-    // CPU cores
-    const cpuCores = navigator.hardwareConcurrency || 'Unknown';
-
-    // RAM approx
-    const ram = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Unknown';
-
-    // Storage usage - use StorageManager API if available
-    let storage = 'Unavailable';
-    if (navigator.storage && navigator.storage.estimate) {
-      try {
-        const estimate = await navigator.storage.estimate();
-        if (estimate.quota && estimate.usage) {
-          const usedGB = (estimate.usage / 1024 / 1024 / 1024).toFixed(2);
-          const quotaGB = (estimate.quota / 1024 / 1024 / 1024).toFixed(2);
-          storage = `${usedGB} GB / ${quotaGB} GB`;
-        }
-      } catch (e) {
-        storage = 'Unavailable';
-      }
-    }
-
-    // Screen resolution
-    const screenRes = `${window.screen.width} x ${window.screen.height}`;
-
-    // Color depth
-    const colorDepth = window.screen.colorDepth + ' bits';
-
-    // Network info
-    let netInfo = {type:'Unknown', downlink:'Unknown'};
-    if(navigator.connection) {
-      netInfo.type = navigator.connection.effectiveType || 'Unknown';
-      netInfo.downlink = navigator.connection.downlink || 'Unknown';
-    }
-
-    // Battery status (async)
-    let batteryStatus = 'Unavailable';
-    if(navigator.getBattery) {
-      try {
-        const battery = await navigator.getBattery();
-        const charging = battery.charging ? 'Charging' : 'Not Charging';
-        const level = (battery.level * 100).toFixed(0) + '%';
-        batteryStatus = `${level} (${charging})`;
-      } catch(e) {
-        batteryStatus = 'Unavailable';
-      }
-    }
-
-    // Language and timezone
-    const language = navigator.language || 'Unknown';
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
-
-    // Cookies enabled
-    const cookiesEnabled = navigator.cookieEnabled ? 'Yes' : 'No';
-
-    // Touch support
-    const touchSupport = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'Yes' : 'No';
-
-    // User agent string
-    const userAgent = navigator.userAgent;
-
-    // Estimate device speed (ops count)
-    const deviceSpeedRaw = await estimateDeviceSpeed();
-    let deviceSpeed = 'Low';
-    if(deviceSpeedRaw > 1500000) deviceSpeed = 'High';
-    else if(deviceSpeedRaw > 800000) deviceSpeed = 'Medium';
-
-    // IP address
-    const ipAddress = await getIPAddress();
-
-    // Update UI
-    document.getElementById('deviceType').textContent = deviceType;
-    document.getElementById('osInfo').textContent = osInfo;
-    document.getElementById('browserInfo').textContent = browserInfo;
-    document.getElementById('cpuCores').textContent = cpuCores;
-    document.getElementById('ram').textContent = ram;
-    document.getElementById('storage').textContent = storage;
-    document.getElementById('screenRes').textContent = screenRes;
-    document.getElementById('colorDepth').textContent = colorDepth;
-    document.getElementById('networkType').textContent = netInfo.type;
-    document.getElementById('wifiSpeed').textContent = (netInfo.downlink !== 'Unknown') ? netInfo.downlink + ' Mbps' : 'Unknown';
-    document.getElementById('deviceSpeed').textContent = deviceSpeed;
-    document.getElementById('batteryStatus').textContent = batteryStatus;
-    document.getElementById('language').textContent = language;
-    document.getElementById('timezone').textContent = timezone;
-    document.getElementById('cookiesEnabled').textContent = cookiesEnabled;
-    document.getElementById('touchSupport').textContent = touchSupport;
-    document.getElementById('userAgent').textContent = userAgent;
-    document.getElementById('ipAddress').textContent = ipAddress;
-  }
-
-  // Show unlock button after 35 seconds loading screen
-  window.addEventListener('load', () => {
+  window.onload = function () {
     setTimeout(() => {
       document.getElementById('loadingScreen').style.display = 'none';
       document.getElementById('overlay').style.display = 'flex';
-    }, 35000); // 35 seconds
-  });
+    }, 2000);
+  };
 
-  const unlockBtn = document.getElementById('unlockBtn');
-  const lockBtn = document.getElementById('lockBtn');
-  const overlay = document.getElementById('overlay');
-  const infoPanel = document.getElementById('infoPanel');
+  document.getElementById('unlockBtn').onclick = function () {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('infoPanel').classList.add('show');
+    showDeviceInfo();
+  };
 
-  unlockBtn.addEventListener('click', async () => {
-    unlockBtn.disabled = true;
-    unlockBtn.innerHTML = '🔄 Detecting...';
-    await gatherDeviceInfo();
-    overlay.style.display = 'none';
-    infoPanel.classList.add('show');
-  });
+  document.getElementById('lockBtn').onclick = function () {
+    document.getElementById('infoPanel').classList.remove('show');
+    document.getElementById('overlay').style.display = 'flex';
+  };
 
-  lockBtn.addEventListener('click', () => {
-    infoPanel.classList.remove('show');
-    setTimeout(() => {
-      overlay.style.display = 'flex';
-      unlockBtn.disabled = false;
-      unlockBtn.innerHTML = `🔓 Unlock`;
-    }, 600);
-  });
+  function showDeviceInfo() {
+    const ua = navigator.userAgent;
+    document.getElementById('deviceType').textContent = /Mobi|Android/i.test(ua) ? 'Mobile' : 'Desktop';
+    document.getElementById('osInfo').textContent = navigator.platform;
+    document.getElementById('browserInfo').textContent = navigator.userAgentData ? navigator.userAgentData.brands[0].brand : navigator.userAgent;
+    document.getElementById('cpuCores').textContent = navigator.hardwareConcurrency || 'N/A';
+    document.getElementById('ram').textContent = navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'Unavailable';
+    document.getElementById('screenRes').textContent = `${window.screen.width} x ${window.screen.height}`;
+    document.getElementById('colorDepth').textContent = `${window.screen.colorDepth}-bit`;
+    document.getElementById('networkType').textContent = navigator.connection ? navigator.connection.effectiveType : 'Unknown';
+    document.getElementById('language').textContent = navigator.language;
+    document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById('cookiesEnabled').textContent = navigator.cookieEnabled ? 'Yes' : 'No';
+    document.getElementById('touchSupport').textContent = ('ontouchstart' in window) ? 'Yes' : 'No';
+    document.getElementById('userAgent').textContent = navigator.userAgent;
+
+    if (navigator.getBattery) {
+      navigator.getBattery().then(battery => {
+        document.getElementById('batteryStatus').textContent = `${Math.round(battery.level * 100)}% - ${battery.charging ? 'Charging' : 'Not Charging'}`;
+      });
+    } else {
+      document.getElementById('batteryStatus').textContent = 'Unavailable';
+    }
+  }
 </script>
-
 </body>
 </html>
