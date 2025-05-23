@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Device Info Checker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+    background-size: cover;
+    overflow: hidden;
+    color: #222;
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+  }
+
+  #unlockBtn {
+    padding: 1.2em 3.2em;
+    font-size: 2.2rem;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background-color: #0056d2;
+    color: white;
+    box-shadow: 0 0 20px #0056d2;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+  }
+
+  #unlockBtn:hover, #lockBtn:hover {
+    background-color: #003f9a;
+  }
+
+  #unlockBtn:focus, #lockBtn:focus {
+    outline: 3px solid #003f9a;
+    outline-offset: 3px;
+  }
+
+  #unlockBtn[disabled] {
+    cursor: wait;
+    opacity: 0.8;
+  }
+
+  /* Spinner */
+  .spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  #infoPanel {
+    display: none;
+    max-width: 650px;
+    margin: 3rem auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
+    color: #111;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  #infoPanel.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    color: #003f9a;
+  }
+
+  .info-row {
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .info-label {
+    font-weight: 700;
+    min-width: 180px;
+    color: #0056d2;
+    white-space: nowrap;
+  }
+
+  /* Buttons container */
+  #btnContainer {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  #lockBtn {
+    padding: 0.8em 2.5em;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background-color: #d9534f;
+    color: white;
+    box-shadow: 0 0 15px #d9534f;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+
+  #lockBtn:focus {
+    outline: 3px solid #a43531;
+    outline-offset: 3px;
+  }
+
+  #lockBtn:hover {
+    background-color: #b2302b;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    #infoPanel {
+      margin: 1rem 1rem;
+      padding: 1.5rem 1.8rem;
+    }
+    .info-label {
+      min-width: 140px;
+      font-size: 1rem;
+    }
+    .info-row {
+      font-size: 1rem;
+    }
+    #unlockBtn {
+      font-size: 1.6rem;
+      padding: 1em 2.5em;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="unlockBtn">
+  <button id="unlockBtn" aria-label="Unlock device information">
+    <span>🔓 Unlock</span>
+  </button>
+</div>
+
+<div id="infoPanel" aria-live="polite" aria-atomic="true">
+  <h1>🔍 Your Device Information</h1>
+  <div class="info-row"><span class="info-label">📱 Device Type:</span> <span id="deviceType">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">🖥️ Operating System:</span> <span id="osInfo">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">🧮 CPU Cores:</span> <span id="cpuCores">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">💾 RAM (Approx.):</span> <span id="ram">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">🗄️ Storage (Used / Total):</span> <span id="storage">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">🌐 Network Type:</span> <span id="networkType">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">📶 Estimated Wi-Fi Speed:</span> <span id="wifiSpeed">Detecting...</span></div>
+  <div class="info-row"><span class="info-label">⚡ Device Speed Estimate:</span> <span id="deviceSpeed">Calculating...</span></div>
+  <div id="btnContainer">
+    <button id="lockBtn" aria-label="Lock and hide device information">🔒 Lock</button>
+  </div>
+</div>
+
+<script>
+  function detectDeviceType() {
+    if (navigator.userAgentData) {
+      if (navigator.userAgentData.mobile) return 'Mobile';
+      else return 'Desktop';
+    }
+    const ua = navigator.userAgent.toLowerCase();
+    if (/mobile|android|iphone|ipad|phone|tablet/.test(ua)) return 'Mobile/Tablet';
+    return 'Desktop';
+  }
+
+  function detectOS() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    if (/windows phone/i.test(ua)) return "Windows Phone";
+    if (/win/i.test(ua)) return "Windows";
+    if (/android/i.test(ua)) return "Android";
+    if (/linux/i.test(ua)) return "Linux";
+    if (/iphone|ipad|ipod/i.test(ua)) return "iOS";
+    if (/macintosh|mac os x/i.test(ua)) return "Mac OS";
+    return "Unknown";
+  }
+
+  async function getStorageInfo() {
+    if (navigator.storage && navigator.storage.estimate) {
+      const estimate = await navigator.storage.estimate();
+      if (estimate.quota && estimate.usage) {
+        const usedGB = (estimate.usage / (1024 ** 3)).toFixed(2);
+        const totalGB = (estimate.quota / (1024 ** 3)).toFixed(2);
+        return `${usedGB} GB / ${totalGB} GB`;
+      }
+    }
+    return "Not available";
+  }
+
+  function getNetworkInfo() {
+    const navConn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (!navConn) return { type: 'Unknown', downlink: 'N/A' };
+    return {
+      type: navConn.effectiveType || navConn.type || 'Unknown',
+      downlink: navConn.downlink || 'N/A'
+    };
+  }
+
+  function estimateDeviceSpeed() {
+    const iterations = 100000000;
+    const start = performance.now();
+    let sum = 0;
+    for(let i=0; i<iterations; i++) {
+      sum += i;
+    }
+    const end = performance.now();
+    const duration = end - start;
+    if (duration < 1000) return `Fast (${duration.toFixed(0)} ms)`;
+    if (duration < 3000) return `Medium (${duration.toFixed(0)} ms)`;
+    return `Slow (${duration.toFixed(0)} ms)`;
+  }
+
+  const unlockBtn = document.getElementById('unlockBtn');
+  const overlay = document.getElementById('overlay');
+  const infoPanel = document.getElementById('infoPanel');
+  const lockBtn = document.getElementById('lockBtn');
+
+  async function showDeviceInfo() {
+    unlockBtn.disabled = true;
+    // Add spinner
+    unlockBtn.innerHTML = `<span class="spinner" aria-hidden="true"></span> <span>Detecting...</span>`;
+
+    // Gather info
+    const deviceType = detectDeviceType();
+    const osInfo = detectOS();
+    const cpuCores = navigator.hardwareConcurrency || "Unknown";
+    const ram = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown";
+    const storage = await getStorageInfo();
+    const netInfo = getNetworkInfo();
+    const deviceSpeed = estimateDeviceSpeed();
+
+    // Fill in UI
+    document.getElementById('deviceType').textContent = deviceType;
+    document.getElementById('osInfo').textContent = osInfo;
+    document.getElementById('cpuCores').textContent = cpuCores;
+    document.getElementById('ram').textContent = ram;
+    document.getElementById('storage').textContent = storage;
+    document.getElementById('networkType').textContent = netInfo.type;
+    document.getElementById('wifiSpeed').textContent = netInfo.downlink + ' Mbps';
+    document.getElementById('deviceSpeed').textContent = deviceSpeed;
+
+    // Show info panel with fade-in
+    overlay.style.display = 'none';
+    infoPanel.classList.add('show');
+
+    unlockBtn.disabled = false;
+    unlockBtn.innerHTML = `🔓 Unlock`;
+  }
+
+  function lockDeviceInfo() {
+    infoPanel.classList.remove('show');
+    setTimeout(() => {
+      overlay.style.display = 'flex';
+    }, 600);
+  }
+
+  unlockBtn.addEventListener('click', showDeviceInfo);
+  lockBtn.addEventListener('click', lockDeviceInfo);
+</script>
+
+</body>
+</html>
